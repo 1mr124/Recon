@@ -5,9 +5,11 @@ import os
 import subprocess
 import requests
 import re
+import logging
 
 class Recon:
     def __init__(self, FilePath):
+        self.logger = self.log()
         self.FilePath = FilePath
         self.ScopeLinks = self.ReadFile(FilePath)
 
@@ -99,7 +101,29 @@ class Recon:
         else:
             print(f"This {tool} is not installed")
             return False
-  
+
+
+
+    def log(self):
+        # .debug .info .warning .error .critical
+        # Create a logger for your script
+        logger = logging.getLogger('recon')
+        logger.setLevel(logging.DEBUG)  # Set the log level to DEBUG
+
+        # Create a file handler for writing log messages to a file
+        file_handler = logging.FileHandler('recon.log')
+        file_handler.setLevel(logging.DEBUG)  # Set the desired log level
+        file_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+        logger.addHandler(file_handler)  
+
+        # Create a stream handler for displaying log messages on the console
+        stream_handler = logging.StreamHandler()
+        stream_handler.setLevel(logging.DEBUG)  # Set the desired log level
+        stream_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+        logger.addHandler(stream_handler)
+        return logger
+
+
     def runSublist3r(self):
         if self.chekcTool("sublist3r"):
             for i in self.ScopeLinks:
@@ -209,5 +233,6 @@ if __name__ == "__main__":
     if FilePath:
         print("hello this is recon")
         r1 = Recon(FilePath)
+        r1.logger.info("this is an info")
     else:
         print("run recon.py -h --help")
