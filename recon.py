@@ -21,9 +21,9 @@ class Recon:
                     Lines = [line.strip() for line in file.readlines() if line.strip()]
                     return Lines
             except:
-                print("Error in reading file {}".format(Path))
+                self.logger.error("Error in reading file {}".format(Path))
         else:
-            print("File does not exist")
+            self.logger.error("File does not exist")
 
 
     def checkIfFileExist(self, Path):
@@ -55,10 +55,10 @@ class Recon:
                 command = "wafw00f -i {} -o wafwoof.txt".format(self.FilePath)
                 result = self.ExcuteCommand(command)
                 if self.checkResult(result):
-                    print("Done finding firewall for all socpe result in waffwoff.txt")
+                    self.logger.info("Done finding firewall for all socpe result in waffwoff.txt")
                     return True
                 else:
-                    print("Error in finding firewall")
+                    self.logger.error("Error in finding firewall")
                     return False
 
     def FindFireWallForSingleUrl(self, Url):
@@ -70,28 +70,28 @@ class Recon:
             elif "is behind" in result.stdout:
                 return True
         else:
-            print("Error in finding firewall")
+            self.logger.error("Error in finding firewall")
 
     def CreateScopeFoldars(self):
         for i in self.ScopeLinks:
             command  = "mkdir Scope/{}".format(i)
             result = self.ExcuteCommand(command)
         else:
-            print("Done making foldars of the scope")
+            self.logger.info("Done making foldars of the scope")
 
     def FindScopeHost(self):
         for i in self.ScopeLinks:
             command = "host {} >> host.txt".format(i)
             result = self.ExcuteCommand(command)
         else:
-            print("Done find host ips")
+            self.logger.info("Done find host ips")
 
     def CollectIpsFromHost(self):
         if self.checkIfFileExist("host.txt"):
             command = "grep -E -o '([0-9]{1,3}\.){3}[0-9]{1,3}' host.txt > hostIps.txt"
             self.ExcuteCommand(command)
         else:
-            "print host file not found"
+            self.logger.error("host file not found")
 
     def chekcTool(self, tool):
         command = f"which {tool}"
@@ -99,7 +99,7 @@ class Recon:
         if self.checkResult(result):
             return True
         else:
-            print(f"This {tool} is not installed")
+            self.logger.error(f"This {tool} is not installed")
             return False
 
 
@@ -131,9 +131,9 @@ class Recon:
                     command = f"sublist3r -d {i} -o {i}/{i}.sublist3r.txt"
                     result = self.ExcuteCommand(command)
                 else:
-                    print(f"can't find {i} Directory")
+                    self.logger.error(f"can't find {i} Directory")
             else:
-                print("Done sublist3r")
+                self.logger.info("Done sublist3r")
                 return True
         else:
             return False
@@ -146,9 +146,9 @@ class Recon:
                     command = f"subfinder -d {i} -o {i}/{i}.subfinder.txt"
                     result = self.ExcuteCommand(command)
                 else:
-                    print(f"can't find {i} Directory")
+                    self.logger.error(f"can't find {i} Directory")
             else:
-                print("Done subfinder")
+                self.logger.info("Done subfinder")
                 return True
         else:
             return False
@@ -162,9 +162,9 @@ class Recon:
                     command = f"enum --active -d {i} -o {i}/{i}.ActiveAmass.txt"
                     result = self.ExcuteCommand(command)
                 else:
-                    print(f"can't find {i} Directory")
+                    self.logger.error(f"can't find {i} Directory")
             else:
-                print("Done amass")
+                self.logger.info("Done amass")
                 return True
         else:
             return False
@@ -176,9 +176,9 @@ class Recon:
                     command = f"assetfinder {i} > {i}/{i}.assetfinder.txt"
                     result = self.ExcuteCommand(command)
                 else:
-                    print(f"can't find {i} Directory")
+                    self.logger.error(f"can't find {i} Directory")
             else:
-                print("Done assetfinder")
+                self.logger.info("Done assetfinder")
                 return True
         else:
             return False
@@ -194,9 +194,9 @@ class Recon:
                     FileName = f"{i}/{i}.crtSh.txt"
                     self.writeToFile(FileName, subdomains)
                 else:
-                    print(f'Error in geting crt.sh: {response.status_code}')
+                    self.logger.error(f'Error in geting crt.sh: {response.status_code}')
             else:
-                    print(f"can't find {i} Directory")
+                    self.logger.error(f"can't find {i} Directory")
 
 
     def runWaybacruls(self):
@@ -206,9 +206,9 @@ class Recon:
                     command = f"waybackurls {i} > {i}/{i}.waybackurls.txt"
                     result = self.ExcuteCommand(command)
                 else:
-                    print(f"can't find {i} Directory")
+                    self.logger.error(f"can't find {i} Directory")
             else:
-                print("Done waybackurls")
+                self.logger.info("Done waybackurls")
                 return True
         else:
             return False
