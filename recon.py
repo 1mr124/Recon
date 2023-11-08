@@ -35,7 +35,7 @@ class Recon:
     def ExcuteCommand(self, command):
         return subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
 
-    def checkResult(self, result):
+    def checkCommandResult(self, result):
         if result.returncode == 0:
             return True
         else:
@@ -54,7 +54,7 @@ class Recon:
             if self.checkIfFileExist(self.FilePath):
                 command = "wafw00f -i {} -o wafwoof.txt".format(self.FilePath)
                 result = self.ExcuteCommand(command)
-                if self.checkResult(result):
+                if self.checkCommandResult(result):
                     self.logger.info("Done finding firewall for all socpe result in waffwoff.txt")
                     return True
                 else:
@@ -64,7 +64,7 @@ class Recon:
     def FindFireWallForSingleUrl(self, Url):
         command = "wafw00f {}".format(Url)
         result = self.ExcuteCommand(command)
-        if self.checkResult(result):
+        if self.checkCommandResult(result):
             if "No WAF" in result.stdout:
                 return False
             elif "is behind" in result.stdout:
@@ -96,7 +96,7 @@ class Recon:
     def chekcTool(self, tool):
         command = f"which {tool}"
         result = self.ExcuteCommand(command)
-        if self.checkResult(result):
+        if self.checkCommandResult(result):
             return True
         else:
             self.logger.error(f"This {tool} is not installed")
@@ -221,6 +221,29 @@ class Recon:
     def runNmapOnScope(self):
         pass
 
+    def run_whois(self, ip):
+            try:
+                result = subprocess.run(['whois', ip], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, check=True)
+                return result.stdout
+            except subprocess.CalledProcessError as e:
+                return e.stderr
+
+    def is_firewall_ip(self, ip_info):
+        # Define keywords to identify firewall or proxy IPs in whois information.
+        firewall_keywords = ["waf","amazon","firewall", "proxy", "cdn", "cloudflare","aws" ,"generic","edgecast","akamai","modsecurity","imperva incapsula","f5 webSafe","akamai web application protecto"]
+        pattern = "|".join(map(re.escape, firewall_keywords))
+        matches = re.search(pattern, ip_info,re.IGNORECASE)
+        if matches:
+            return True
+        else:
+            return False
+
+    def isFireWallIp(self, ip):
+        ipInfo = self.run_whois(ip)
+        isFirewall = self.is_firewall_ip(ipInfo)
+        return isFirewall
+
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Recon script to automate boring recon stuff',add_help=False)
@@ -234,5 +257,11 @@ if __name__ == "__main__":
         print("hello this is recon")
         r1 = Recon(FilePath)
         r1.logger.info("this is an info")
+        #ips = r1.ReadFile("/home/mr124/Documents/SitesToHunt/PorscheH1C/hostIp.txt")
+        for i in r1.ScopeLinks:
+            if r1.FindFireWallForSingleUrl(i):
+                print(f"{i} is an FireWall IP")
+            else:
+                print(f"{i} is a website IP")
     else:
         print("run recon.py -h --help")
