@@ -301,8 +301,6 @@ if __name__ == "__main__":
     FilePath = args.FilePath
     if FilePath:
         print("hello this is recon")
-        r1 = Recon(FilePath)
-        #ips = r1.ReadFile("/home/mr124/Documents/SitesToHunt/PorscheH1C/hostIp.txt")
-        
+        r1 = Recon(FilePath)        
     else:
         print("run recon.py -h --help")
