@@ -42,10 +42,13 @@ class Recon:
             return False
 
     def writeToFile(self, FileName, Data):
-        with open(FileName, "w") as file:
-            for i in Data:
-                file.write(i+'\n')
-            file.close()
+        with open(FileName, "a") as file:
+            if isinstance(Data, list):
+                for i in Data:
+                    file.write(i+'\n')
+                file.close()
+            else:
+                f.write(Data+'\n')
 
     def sendRequest(self, url):
         return requests.get(url)
@@ -80,18 +83,25 @@ class Recon:
             self.logger.info("Done making foldars of the scope")
 
     def FindScopeHost(self):
-        for i in self.ScopeLinks:
-            command = "host {} >> host.txt".format(i)
-            result = self.ExcuteCommand(command)
+        if self.checkIfFileExist("host.txt"):
+            self.logger.info("found host.txt file")
+            return True
         else:
-            self.logger.info("Done find host ips")
+            for i in self.ScopeLinks:
+                command = "host {} >> host.txt".format(i)
+                result = self.ExcuteCommand(command)
+            else:
+                self.logger.info("Done find host ips")
+                return True
 
     def CollectIpsFromHost(self):
         if self.checkIfFileExist("host.txt"):
             command = "grep -E -o '([0-9]{1,3}\.){3}[0-9]{1,3}' host.txt > hostIps.txt"
             self.ExcuteCommand(command)
+            return True
         else:
             self.logger.error("host file not found")
+            return False
 
     def chekcTool(self, tool):
         command = f"which {tool}"
@@ -214,12 +224,49 @@ class Recon:
             return False
 
 
+    def findRealIpScope(self):
+        # generate Real Ips from hostIp.txt
+        if self.checkIfFileExist("hostIps.txt"):
+            for i in self.ReadFile("hostIps.txt"):
+                isFireWall = self.is_firewall_ip(i)
+                if isFireWall:
+                    continue
+                else:
+                    self.writeToFile("scopeRealIps.txt",i)
+            else:
+                self.logger.info("done finding real ip")
+        else:
+            if self.checkIfFileExist("host.txt"):
+                self.CollectIpsFromHost()
+                self.findRealIpScope()
+            else:
+                self.FindScopeHost()
+                self.CollectIpsFromHost()
+                self.findRealIpScope()
+
+
     def runMasscanOnScope(self):
         # Don't forget to check if it's a firewall or a site ip
-        pass
+        if self.checkIfFileExist("scopeRealIps.txt"):
+            for i in self.ReadFile("scopeRealIps.txt"):
+                command = f"sudo msudo masscan -p- {i} > {i}.massScan.txt"
+                self.ExcuteCommand(command)
+                self.logger.info(f"done massscan on {i}")
+            else:
+                self.logger.info("Done Mass scan ") 
+        else:
+            self.logger.error("can't find realScopeIp.txt file")
+
 
     def runNmapOnScope(self):
-        pass
+        # Don't forget to check if it's a firewall or a site ip
+        if self.checkIfFileExist("scopeRealIps.txt"):
+            for i in self.ReadFile("scopeRealIps.txt"):
+                command = "nmap"
+            else:
+                self.logger.info("Done Nmap")
+        else:
+            self.logger.error("can't find realScopeIp.txt file")
 
     def run_whois(self, ip):
             try:
@@ -256,12 +303,7 @@ if __name__ == "__main__":
     if FilePath:
         print("hello this is recon")
         r1 = Recon(FilePath)
-        r1.logger.info("this is an info")
         #ips = r1.ReadFile("/home/mr124/Documents/SitesToHunt/PorscheH1C/hostIp.txt")
-        for i in r1.ScopeLinks:
-            if r1.FindFireWallForSingleUrl(i):
-                print(f"{i} is an FireWall IP")
-            else:
-                print(f"{i} is a website IP")
+        
     else:
         print("run recon.py -h --help")
