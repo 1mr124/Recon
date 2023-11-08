@@ -46,9 +46,8 @@ class Recon:
             if isinstance(Data, list):
                 for i in Data:
                     file.write(i+'\n')
-                file.close()
             else:
-                f.write(Data+'\n')
+                file.write(Data+'\n')
 
     def sendRequest(self, url):
         return requests.get(url)
@@ -223,12 +222,12 @@ class Recon:
         else:
             return False
 
-
+    # This recursive is useless thanks to MohamedSamehMohamed you can just check for file existence then create it first
     def findRealIpScope(self):
         # generate Real Ips from hostIp.txt
         if self.checkIfFileExist("hostIps.txt"):
             for i in self.ReadFile("hostIps.txt"):
-                isFireWall = self.is_firewall_ip(i)
+                isFireWall = self.isFireWallIp(i)
                 if isFireWall:
                     continue
                 else:
@@ -262,7 +261,7 @@ class Recon:
         # Don't forget to check if it's a firewall or a site ip
         if self.checkIfFileExist("scopeRealIps.txt"):
             for i in self.ReadFile("scopeRealIps.txt"):
-                command = "nmap"
+                command = f"sudo nmap -Pn -sS -sC -sV -F {i} -o {i}.namp.txt"
             else:
                 self.logger.info("Done Nmap")
         else:
