@@ -4,7 +4,6 @@ import argparse
 import re
 from BaseClass import *
 
-
 logger = logSetup.log("recon","ReconLog.txt")
 
 class Recon:
@@ -38,10 +37,14 @@ class Recon:
 
     def CreateScopeFoldars(self):
         for i in self.ScopeLinks:
-            command  = "mkdir Scope/{}".format(i)
+            command  = "mkdir -p Scope/{}".format(i)
             result = BaseClass.ExcuteCommand(command)
+            if BaseClass.checkCommandResult(result):
+                self.logger.info("Done making Scope Foldar")
+            else:
+                self.logger.error("Can't make scope foldar")
         else:
-            self.logger.info("Done making foldars of the scope")
+            self.logger.info("Done Creating Foldar Function")
 
     def FindScopeHost(self):
         if BaseClass.checkIfFileExist("host.txt"):
@@ -67,11 +70,12 @@ class Recon:
     def runSublist3r(self):
         if BaseClass.chekcTool("sublist3r"):
             for i in self.ScopeLinks:
-                if BaseClass.checkIfDir(i):
-                    command = f"sublist3r -d {i} -o {i}/{i}.sublist3r.txt"
+                FileExist = BaseClass.checkIfFileExist(f"Scope/{i}/{i}.sublist3r.txt")
+                if BaseClass.checkIfDir(f"Scope/{i}") and not FileExist:
+                    command = f"sublist3r -d {i} -o Scope/{i}/{i}.sublist3r.txt"
                     result = BaseClass.ExcuteCommand(command)
                 else:
-                    self.logger.error(f"can't find {i} Directory")
+                    self.logger.info(f"file already exist or the scope foldar for {i} not exist")
             else:
                 self.logger.info("Done sublist3r")
                 return True
@@ -82,11 +86,12 @@ class Recon:
     def runSubfinder(self):
         if BaseClass.chekcTool("subfinder"):
             for i in self.ScopeLinks:
-                if BaseClass.checkIfDir(i):
-                    command = f"subfinder -d {i} -o {i}/{i}.subfinder.txt"
+                FileExist = BaseClass.checkIfFileExist(f"Scope/{i}/{i}.subfinder.txt")
+                if BaseClass.checkIfDir(f"Scope/{i}") and not FileExist:
+                    command = f"subfinder -d {i} -o Scope/{i}/{i}.subfinder.txt"
                     result = BaseClass.ExcuteCommand(command)
                 else:
-                    self.logger.error(f"can't find {i} Directory")
+                    self.logger.info(f"file already exist or the scope foldar for {i} not exist")
             else:
                 self.logger.info("Done subfinder")
                 return True
@@ -96,13 +101,16 @@ class Recon:
     def runAmass(self):
         if BaseClass.chekcTool("amass"):
             for i in self.ScopeLinks:
-                if BaseClass.checkIfDir(i):
-                    command = f"enum --passive -d {i} -o {i}/{i}.passiveAmass.txt"
+                FileExistPassive = BaseClass.checkIfFileExist(f"Scope/{i}/{i}.passiveAmass.txt")
+                FileExistActive = BaseClass.checkIfFileExist(f"Scope/{i}/{i}.ActiveAmass.txt")
+                if BaseClass.checkIfDir(f"Scope/{i}") and not FileExistPassive and not FileExistActive :
+                    print("starting amass")
+                    command = f"amass enum --passive -d {i} -o Scope/{i}/{i}.passiveAmass.txt"
                     result = BaseClass.ExcuteCommand(command)
-                    command = f"enum --active -d {i} -o {i}/{i}.ActiveAmass.txt"
+                    command = f"amass enum --active -d {i} -o Scope/{i}/{i}.ActiveAmass.txt"
                     result = BaseClass.ExcuteCommand(command)
                 else:
-                    self.logger.error(f"can't find {i} Directory")
+                    self.logger.info(f"file already exist or the scope foldar for {i} not exist")
             else:
                 self.logger.info("Done amass")
                 return True
@@ -112,11 +120,12 @@ class Recon:
     def runAssetfinder(self):
         if BaseClass.chekcTool("assetfinder"):
             for i in self.ScopeLinks:
-                if BaseClass.checkIfDir(i):
-                    command = f"assetfinder {i} > {i}/{i}.assetfinder.txt"
+                FileExist = BaseClass.checkIfFileExist(f"Scope/{i}/{i}.assetfinder.txt")
+                if BaseClass.checkIfDir(f"Scope/{i}") and not FileExist:
+                    command = f"assetfinder {i} > Scope/{i}/{i}.assetfinder.txt"
                     result = BaseClass.ExcuteCommand(command)
                 else:
-                    self.logger.error(f"can't find {i} Directory")
+                    self.logger.info(f"file already exist or the scope foldar for {i} not exist")
             else:
                 self.logger.info("Done assetfinder")
                 return True
@@ -125,28 +134,30 @@ class Recon:
 
     def runCrtsh(self):
         for i in self.ScopeLinks:
-            if BaseClass.checkIfDir(i):
+            FileExist = BaseClass.checkIfFileExist(f"Scope/{i}/{i}.crtSh.txt")
+            if BaseClass.checkIfDir(f"Scope/{i}") and not FileExist :
                 crtUrlSite = f'https://crt.sh/?q=%.{i}&output=json'
                 response = BaseClass.sendRequest(crtUrlSite)
                 if response.status_code == 200:
                     data = response.text
-                    subdomains = set(re.findall(r'\b(?:[a-zA-Z0-9.-]+\.)*' + re.escape(i) + r'\b', data))
-                    FileName = f"{i}/{i}.crtSh.txt"
+                    subdomains = list(set(re.findall(r'\b(?:[a-zA-Z0-9.-]+\.)*' + re.escape(i) + r'\b', data)))
+                    FileName = f"Scope/{i}/{i}.crtSh.txt"
                     BaseClass.writeToFile(FileName, subdomains)
                 else:
                     self.logger.error(f'Error in geting crt.sh: {response.status_code}')
             else:
-                    self.logger.error(f"can't find {i} Directory")
+                    self.logger.info(f"file already exist or the scope foldar for {i} not exist")
 
 
     def runWaybacruls(self):
         if BaseClass.chekcTool("waybackurls"):
             for i in self.ScopeLinks:
-                if BaseClass.checkIfDir(i):
-                    command = f"waybackurls {i} > {i}/{i}.waybackurls.txt"
+                FileExist = BaseClass.checkIfFileExist(f"Scope/{i}/{i}.waybackurls.txt")
+                if BaseClass.checkIfDir(f"Scope/{i}") and not FileExist :
+                    command = f"waybackurls {i} > Scope/{i}/{i}.waybackurls.txt"
                     result = BaseClass.ExcuteCommand(command)
                 else:
-                    self.logger.error(f"can't find {i} Directory")
+                    self.logger.info(f"file already exist or the scope foldar for {i} not exist")
             else:
                 self.logger.info("Done waybackurls")
                 return True
@@ -232,6 +243,15 @@ if __name__ == "__main__":
     FilePath = args.FilePath
     if FilePath:
         print("hello this is recon")
-        r1 = Recon(FilePath)        
+        r1 = Recon(FilePath)
+        r1.CreateScopeFoldars()
+        r1.FindScopeHost()
+        r1.CollectIpsFromHost()
+        r1.runSublist3r()
+        r1.runSubfinder()
+        r1.runCrtsh()
+        r1.runAssetfinder()
+        r1.runWaybacruls()
+        r1.runAmass()
     else:
         print("run recon.py -h --help")

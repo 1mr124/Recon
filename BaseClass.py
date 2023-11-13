@@ -5,7 +5,7 @@ import requests
 
 logger = logSetup.log("BaseClass","log.txt")
 
-class checkIfFileExist:
+class BaseClass:
 
     @staticmethod
     def ReadFile(Path):
@@ -50,8 +50,12 @@ class checkIfFileExist:
             if isinstance(Data, list):
                 for i in Data:
                     file.write(i+'\n')
-            else:
+            elif isinstance(Data, str ):
                 file.write(Data+'\n')
+            else:
+                logger.error("can't find the data Type ")
+
+                
     @staticmethod
     def WriteImage(FileName, Data):
         with open(FileName, "wb") as file:
