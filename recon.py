@@ -247,11 +247,12 @@ if __name__ == "__main__":
         r1.CreateScopeFoldars()
         r1.FindScopeHost()
         r1.CollectIpsFromHost()
+        print("done")
         r1.runSublist3r()
         r1.runSubfinder()
         r1.runCrtsh()
         r1.runAssetfinder()
         r1.runWaybacruls()
-        r1.runAmass()
+#        r1.runAmass()
     else:
         print("run recon.py -h --help")
