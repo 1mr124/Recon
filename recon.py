@@ -254,5 +254,6 @@ if __name__ == "__main__":
         r1.runAssetfinder()
         r1.runWaybacruls()
 #        r1.runAmass()
+        r1.FindFireWall()
     else:
         print("run recon.py -h --help")
