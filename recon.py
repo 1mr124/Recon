@@ -1,4 +1,3 @@
-#!/usr/bin/python3
 
 import argparse
 import re
@@ -60,7 +59,7 @@ class Recon:
 
     def CollectIpsFromHost(self):
         if BaseClass.checkIfFileExist("host.txt"):
-            command = "grep -E -o '([0-9]{1,3}\.){3}[0-9]{1,3}' host.txt > hostIps.txt"
+            command = r"grep -E -o '([0-9]{1,3}\.){3}[0-9]{1,3}' host.txt > hostIps.txt"
             BaseClass.ExcuteCommand(command)
             return True
         else:
